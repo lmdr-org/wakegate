@@ -10,14 +10,14 @@
 # installs that build. Piped from curl, it downloads the release for this machine and
 # checks its checksum first:
 #
-#   curl -fsSL https://raw.githubusercontent.com/clauer-org/wakegate/main/install.sh | sudo sh -s -- agent
+#   curl -fsSL https://raw.githubusercontent.com/lmdr-org/wakegate/main/install.sh | sudo sh -s -- agent
 #
 # --version vX.Y.Z picks a release (the latest by default). Configuration files and the
 # agent token are kept when it runs again: it updates the binary, the systemd unit and
 # the polkit rule, and restarts the service if it was running.
 set -eu
 
-repo=clauer-org/wakegate
+repo=lmdr-org/wakegate
 bin=/usr/local/bin/wakegate
 etc=/etc/wakegate
 units=/etc/systemd/system

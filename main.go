@@ -1,5 +1,5 @@
 // Command wakegate wakes a computer when a request needs it and lets it sleep when
-// nothing does. See https://github.com/clauer-org/wakegate.
+// nothing does. See https://github.com/lmdr-org/wakegate.
 package main
 
 import (
@@ -14,9 +14,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/agent"
-	"github.com/clauer-org/wakegate/internal/proxy"
-	"github.com/clauer-org/wakegate/internal/wol"
+	"github.com/lmdr-org/wakegate/internal/agent"
+	"github.com/lmdr-org/wakegate/internal/proxy"
+	"github.com/lmdr-org/wakegate/internal/wol"
 )
 
 // version is set at build time: -ldflags "-X main.version=v1.2.3".
@@ -30,7 +30,7 @@ Usage:
   wakegate wake [-broadcast ADDR,...] MAC  send a magic packet, to test Wake-on-LAN
   wakegate version
 
-Documentation: https://github.com/clauer-org/wakegate
+Documentation: https://github.com/lmdr-org/wakegate
 `
 
 func main() {

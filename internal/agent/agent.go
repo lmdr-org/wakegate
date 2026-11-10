@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
-	"github.com/clauer-org/wakegate/internal/jsonfile"
+	"github.com/lmdr-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/jsonfile"
 )
 
 // Timings. The proxy polls every two seconds: the grace period leaves it time to see

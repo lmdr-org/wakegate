@@ -20,7 +20,7 @@ import (
 
 	_ "embed"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // WakePath is served by the proxy on every HTTP service port: POST /__wake wakes the

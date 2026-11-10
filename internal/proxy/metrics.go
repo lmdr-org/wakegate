@@ -3,7 +3,7 @@ package proxy
 import (
 	"net/http"
 
-	"github.com/clauer-org/wakegate/internal/promtext"
+	"github.com/lmdr-org/wakegate/internal/promtext"
 )
 
 // metrics serves GET /metrics. Everything comes from the proxy itself: scraping it

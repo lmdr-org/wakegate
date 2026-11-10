@@ -5,7 +5,7 @@
 #     -v ./proxy.yaml:/etc/wakegate/proxy.yaml:ro \
 #     -v ./agent.token:/etc/wakegate/agent.token:ro \
 #     -v wakegate-state:/var/lib/wakegate \
-#     ghcr.io/clauer-org/wakegate
+#     ghcr.io/lmdr-org/wakegate
 FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS build
 ARG TARGETOS TARGETARCH TARGETVARIANT VERSION=dev
 WORKDIR /src

@@ -1,6 +1,6 @@
 [Unit]
 Description=wakegate proxy: wakes the target when a request needs it
-Documentation=https://github.com/clauer-org/wakegate
+Documentation=https://github.com/lmdr-org/wakegate
 After=network-online.target
 Wants=network-online.target
 

@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
-	"github.com/clauer-org/wakegate/internal/wol"
+	"github.com/lmdr-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/wol"
 )
 
 // State is the target's state as the proxy sees it.

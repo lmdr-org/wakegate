@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // fakeSystem records sleeps and serves canned checks.

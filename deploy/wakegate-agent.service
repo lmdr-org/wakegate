@@ -1,6 +1,6 @@
 [Unit]
 Description=wakegate agent: puts this computer to sleep when nothing needs it
-Documentation=https://github.com/clauer-org/wakegate
+Documentation=https://github.com/lmdr-org/wakegate
 After=network-online.target
 Wants=network-online.target
 

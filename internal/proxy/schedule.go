@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
-	"github.com/clauer-org/wakegate/internal/jsonfile"
+	"github.com/lmdr-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/jsonfile"
 )
 
 // Schedule is the awake window: on the chosen days, from Start to End, the target is

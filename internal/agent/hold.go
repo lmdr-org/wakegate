@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // input is everything the idle decision depends on.

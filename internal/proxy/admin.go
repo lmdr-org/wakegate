@@ -12,7 +12,7 @@ import (
 
 	_ "embed"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // Admin serves the admin page and its API.

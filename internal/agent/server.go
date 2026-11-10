@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // Handler serves the agent API. Every route but GET /healthz needs the token.

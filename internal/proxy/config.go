@@ -16,7 +16,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
-	"github.com/clauer-org/wakegate/internal/rules"
+	"github.com/lmdr-org/wakegate/internal/rules"
 )
 
 // Config is /etc/wakegate/proxy.yaml.

@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // Activity counts the requests and connections that hold the target awake, and when

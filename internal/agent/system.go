@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // System is what the agent needs from the machine. Linux implements it; tests replace it.

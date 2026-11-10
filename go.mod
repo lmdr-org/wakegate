@@ -1,4 +1,4 @@
-module github.com/clauer-org/wakegate
+module github.com/lmdr-org/wakegate
 
 go 1.25
 

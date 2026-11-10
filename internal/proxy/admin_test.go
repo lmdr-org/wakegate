@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/clauer-org/wakegate/internal/agent"
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/agent"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 const testToken = "0123456789abcdef0123"

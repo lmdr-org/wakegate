@@ -13,7 +13,7 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
-	"github.com/clauer-org/wakegate/internal/api"
+	"github.com/lmdr-org/wakegate/internal/api"
 )
 
 // Config is /etc/wakegate/agent.yaml.

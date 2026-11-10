@@ -63,7 +63,7 @@ only step that depends on your hardware.
 **2. Install the agent on the target.**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/clauer-org/wakegate/main/install.sh | sudo sh -s -- agent
+curl -fsSL https://raw.githubusercontent.com/lmdr-org/wakegate/main/install.sh | sudo sh -s -- agent
 sudo systemctl enable --now wakegate-agent
 ```
 
@@ -75,7 +75,7 @@ requests. The installer ends with the command to run on the proxy, token include
 **3. Install the proxy on the machine that stays on.**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/clauer-org/wakegate/main/install.sh | sudo sh -s -- proxy --agent-token <token>
+curl -fsSL https://raw.githubusercontent.com/lmdr-org/wakegate/main/install.sh | sudo sh -s -- proxy --agent-token <token>
 sudoedit /etc/wakegate/proxy.yaml
 wakegate proxy -check
 sudo systemctl enable --now wakegate-proxy
@@ -106,7 +106,7 @@ services:
 wakegate: it neither wakes the target nor keeps it awake.
 
 You would rather not pipe a script into a shell? Download the archive for your machine
-from the [releases](https://github.com/clauer-org/wakegate/releases), check it against
+from the [releases](https://github.com/lmdr-org/wakegate/releases), check it against
 `SHA256SUMS`, extract it and run `sudo ./install.sh agent` (or `proxy`) from inside.
 `install.sh uninstall` removes wakegate.
 
@@ -176,7 +176,7 @@ docker run -d --name wakegate --network host --restart unless-stopped \
   -v ./agent.token:/etc/wakegate/agent.token:ro \
   -v wakegate-state:/var/lib/wakegate \
   -e TZ=Europe/Paris \
-  ghcr.io/clauer-org/wakegate
+  ghcr.io/lmdr-org/wakegate
 ```
 
 `TZ` sets the time zone of the awake window. The agent does not run in a container: it
@@ -205,7 +205,7 @@ they come back after a boot. Suspend keeps them running.
 Go 1.25 or later:
 
 ```sh
-go install github.com/clauer-org/wakegate@latest
+go install github.com/lmdr-org/wakegate@latest
 # or, from a clone
 go build -o wakegate . && sudo ./install.sh agent
 ```
