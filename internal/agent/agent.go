@@ -324,7 +324,8 @@ func (a *Agent) finish(ctx context.Context, action string, seq uint64, reason st
 	case action == api.PowerOff:
 		// Stays "shutting-down" until the machine is off.
 	default:
-		a.log.Info("awake again", "action", action, "after", time.Since(start).Round(time.Second))
+		// Wall clock: the monotonic one stops while the machine sleeps.
+		a.log.Info("awake again", "action", action, "after", time.Now().Round(0).Sub(start.Round(0)).Round(time.Second))
 		a.backToReady(true)
 	}
 }
