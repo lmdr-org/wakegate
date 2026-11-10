@@ -1,0 +1,48 @@
+# wakegate proxy, on the machine that is always on. Reference: docs/configuration.md;
+# ready-made service entries: docs/services.md. Check with:
+#   wakegate proxy -check -config /etc/wakegate/proxy.yaml
+
+target:
+  name: tower                    # shown on the admin page and in the logs
+  host: 192.168.1.20             # the target's address; give it a fixed DHCP lease
+  mac: "00:00:00:00:00:00"       # its wired network card: `ip link` on the target
+  # Where the magic packet goes: the broadcast address of the target's network.
+  broadcast: [192.168.1.255]
+  # Instead of a magic packet, a command that wakes the target, for a proxy outside
+  # its network (a VPS) or a machine woken another way (IPMI, a smart plug):
+  # wake_command: [ssh, pi@192.168.1.2, wakeonlan, "00:00:00:00:00:00"]
+
+  # The agent on the target. Without it, comment out both lines: the proxy then checks
+  # that the first service accepts connections, and the target handles its own sleep.
+  agent: http://192.168.1.20:9777
+  agent_token_file: /etc/wakegate/agent.token
+
+  boot_timeout: 3m               # how long a request waits for the target to wake up
+
+# The admin page. Anyone who can reach it can wake the target and put it to sleep:
+# keep it on your LAN. Remove the section to turn it off.
+admin:
+  listen: ":9778"
+
+# Each service listens on the proxy and relays to the target. Clients use the proxy's
+# address and this port instead of the target's.
+services:
+  - name: ollama
+    listen: ":11434"
+    upstream: 11434              # a port on target.host, or host:port
+    # Only these requests wake the target and keep it awake. Model lists and version
+    # checks, which clients send all the time, get a 503 while it sleeps.
+    wake_on:
+      - POST /api/generate
+      - POST /api/chat
+      - POST /api/embed
+      - POST /api/embeddings
+      - POST /api/pull
+      - POST /api/create
+      - POST /v1/*
+
+  # Raw TCP: every connection wakes the target and holds it awake until it closes.
+  # - name: ssh
+  #   tcp: true
+  #   listen: ":2222"
+  #   upstream: 22

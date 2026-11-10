@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: test -z "$(gofmt -l .)" || { gofmt -d .; exit 1; }
+      - run: go vet ./...
+      - run: go test -race ./...
+      - name: Example configurations
+        run: |
+          go run . proxy -check -config deploy/proxy.yaml
+          go run . agent -check -config deploy/agent.yaml
+      - name: Shell scripts
+        run: shellcheck install.sh scripts/*.sh
+      - name: Cross-compile
+        run: |
+          for arch in amd64 arm64 arm; do GOOS=linux GOARCH=$arch go build -o /dev/null .; done
+          GOOS=darwin GOARCH=arm64 go build -o /dev/null .
+          GOOS=windows GOARCH=amd64 go build -o /dev/null .

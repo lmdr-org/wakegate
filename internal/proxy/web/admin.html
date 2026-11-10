@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wakegate</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f6f5f2; --panel: #ffffff; --fg: #1d1d1b; --muted: #6b6a66; --line: #e3e1db;
+    --ok: #2f7d4f; --warn: #8c5a0e; --off: #6e6d68; --bad: #b3372f; --accent: #3a6ea5;
+    --bar: #e9e7e1; --on-accent: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161615; --panel: #1f1f1d; --fg: #ecebe7; --muted: #9a9993; --line: #2f2f2c;
+      --ok: #5fbf86; --warn: #e0a64a; --off: #8a8983; --bad: #e0695f; --accent: #7aa7d8;
+      --bar: #2c2c29; --on-accent: #10161f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 58rem; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 1.3rem; font-weight: 600; margin: 0; }
+  #where { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .pill { display: inline-flex; align-items: center; gap: .45rem; padding: .2rem .7rem; border-radius: 999px;
+          border: 1px solid var(--line); background: var(--panel); font-weight: 500; white-space: nowrap; }
+  .pill::before { content: ""; width: .55rem; height: .55rem; border-radius: 50%; background: currentColor; }
+  .s-ready { color: var(--ok); } .s-off { color: var(--off); } .s-bad { color: var(--bad); }
+  .s-waking, .s-shutting-down, .s-pending { color: var(--warn); }
+  .s-asleep { color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr)); gap: 12px; margin: 20px 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .label { color: var(--muted); font-size: .85rem; }
+  .value { font-size: 1.15rem; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .sub { color: var(--muted); font-size: .85rem; margin-top: 2px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--bar); margin-top: 8px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--accent); width: 0; transition: width .4s; }
+  ul.holds { margin: 4px 0 0; padding: 0; list-style: none; color: var(--muted); font-size: .85rem; }
+  ul.holds li { overflow-wrap: anywhere; }
+  table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line);
+          border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); }
+  th { color: var(--muted); font-weight: 500; font-size: .85rem; }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+  .scroll { overflow-x: auto; border-radius: 10px; }
+  .scroll th, .scroll td { white-space: nowrap; }
+  .mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: .82rem; }
+  #recent td { font-size: .9rem; padding: 7px 12px; }
+  #recent td.path { max-width: 18rem; overflow: hidden; text-overflow: ellipsis; }
+  .times { color: var(--muted); font-size: .8rem; margin-left: .3rem; }
+  h2 { font-size: 1rem; font-weight: 600; margin: 28px 0 10px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  button { font: inherit; padding: .5rem .95rem; border-radius: 8px; border: 1px solid var(--line);
+           background: var(--panel); color: var(--fg); cursor: pointer; }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: default; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  button.danger { color: var(--bad); }
+  .chips { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 10px; }
+  .chips button { padding: .15rem .6rem; border-radius: 6px; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .lift { margin-top: 10px; padding: .15rem .6rem; border-radius: 6px; font-size: .85rem; }
+  #msg { min-height: 1.5em; margin-top: 12px; color: var(--muted); }
+  .sched { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .sched label { display: inline-flex; align-items: center; gap: .4rem; }
+  .sched input[type="time"] { font: inherit; padding: .3rem .5rem; border-radius: 6px;
+                              border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+  .days { display: inline-flex; gap: 4px; }
+  .days button { padding: .15rem .5rem; border-radius: 6px; font-size: .85rem; min-width: 2.1rem; }
+  .days button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  #schedmsg { margin-top: 8px; }
+  footer { margin-top: 28px; color: var(--muted); font-size: .8rem; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1 id="name">wakegate</h1>
+      <div id="where"></div>
+    </div>
+    <span id="state" class="pill s-off" role="status">…</span>
+  </header>
+
+  <section class="grid" aria-label="Target">
+    <div class="card" id="c-sleep">
+      <div class="label" id="sleeplabel">Sleep</div>
+      <div class="value" id="sleep">—</div>
+      <div class="sub" id="sleepwhy"></div>
+      <ul class="holds" id="holds"></ul>
+      <button id="b-release" class="lift" hidden
+              title="Open sessions stop holding the target (a session opened later holds it again) and the stay-awake is cancelled. Work in progress still holds it.">Release hold</button>
+      <div class="chips" id="delays" role="group" aria-label="Minutes without requests before sleep">
+        <button data-min="10">10</button><button data-min="15">15</button>
+        <button data-min="30">30</button><button data-min="60">60</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Memory</div>
+      <div class="value" id="mem">—</div>
+      <div class="bar"><span id="membar"></span></div>
+      <div class="sub" id="host"></div>
+    </div>
+    <div class="card">
+      <div class="label">Awake for</div>
+      <div class="value" id="awake">—</div>
+      <div class="sub" id="awakesub"></div>
+    </div>
+    <div class="card">
+      <div class="label">Wake-ups</div>
+      <div class="value" id="wakes">—</div>
+      <div class="sub" id="wakesub"></div>
+    </div>
+  </section>
+
+  <div class="scroll">
+  <table aria-label="Services">
+    <thead><tr><th>Service</th><th>Listens on</th><th>Relays to</th><th>Status</th>
+      <th class="num" title="Requests and connections that may wake the target">Wake</th>
+      <th class="num" title="Other requests, relayed while the target was awake">Other</th>
+      <th class="num" title="Other requests, refused while the target slept: they do not wake it">Refused</th>
+      <th>Last</th></tr></thead>
+    <tbody id="services"><tr><td colspan="8" class="sub">…</td></tr></tbody>
+  </table>
+  </div>
+
+  <div class="actions">
+    <button class="primary" id="b-wake">Wake up</button>
+    <button id="b-stay" title="Hold the target awake for two hours, requests or not">Stay awake 2 h</button>
+    <button id="b-suspend">Suspend</button>
+    <button class="danger" id="b-poweroff">Power off</button>
+  </div>
+  <div id="msg" role="status" aria-live="polite"></div>
+
+  <h2>Awake window</h2>
+  <div class="card">
+    <div class="sched">
+      <label><input type="checkbox" id="s-on"> Wake the target and keep it awake</label>
+      <span class="days" role="group" aria-label="Days">
+        <button data-day="1" title="Monday">M</button><button data-day="2" title="Tuesday">T</button>
+        <button data-day="3" title="Wednesday">W</button><button data-day="4" title="Thursday">T</button>
+        <button data-day="5" title="Friday">F</button><button data-day="6" title="Saturday">S</button>
+        <button data-day="7" title="Sunday">S</button>
+      </span>
+      <label>from <input type="time" id="s-start" value="08:00"></label>
+      <label>to <input type="time" id="s-end" value="23:00"></label>
+      <button id="b-sched">Save</button>
+    </div>
+    <div class="sub" id="schedmsg"></div>
+  </div>
+
+  <h2>Recent requests</h2>
+  <div class="scroll">
+  <table aria-label="Recent requests">
+    <thead><tr><th>Time</th><th>Service</th><th>Request</th><th>Result</th>
+      <th class="num">Duration</th><th>Client</th></tr></thead>
+    <tbody id="recent"></tbody>
+  </table>
+  </div>
+  <footer id="foot"></footer>
+</main>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const DAYS = ["", "Mondays", "Tuesdays", "Wednesdays", "Thursdays", "Fridays", "Saturdays", "Sundays"];
+let target = { state: "off" }, agent = null, timer, schedLoaded = false;
+
+// What the pill says: a target that went to sleep is "asleep", not "off".
+function shown(t) {
+  if (t.state === "off" && t.sleep === "suspend") return ["Asleep", "s-asleep"];
+  if (t.state === "off" && t.sleep === "hibernate") return ["Hibernated", "s-asleep"];
+  if (t.state === "shutting-down") {
+    const a = agent && agent.action;
+    return [a === "poweroff" ? "Shutting down" : "Going to sleep", "s-shutting-down"];
+  }
+  return [{ off: "Off", waking: "Waking up", ready: "Awake" }[t.state] || t.state, "s-" + t.state];
+}
+
+function clock(iso, seconds) {
+  const opts = { hour: "2-digit", minute: "2-digit" };
+  if (seconds) opts.second = "2-digit";
+  return new Date(iso).toLocaleTimeString([], opts);
+}
+
+function span(seconds) {
+  const m = Math.floor(seconds / 60);
+  if (m < 1) return "less than a minute";
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h} h ${String(m % 60).padStart(2, "0")}`;
+  return `${Math.floor(h / 24)} days`;
+}
+
+function ago(iso) {
+  if (!iso) return "—";
+  const s = Math.max(0, Math.round((Date.now() - new Date(iso)) / 1000));
+  if (s < 60) return `${s} s ago`;
+  if (s < 3600) return `${Math.round(s / 60)} min ago`;
+  return clock(iso);
+}
+
+function duration(ms) {
+  if (ms < 1000) return `${ms} ms`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)} s`;
+  return `${Math.floor(ms / 60000)} min ${String(Math.floor(ms / 1000) % 60).padStart(2, "0")} s`;
+}
+
+function bytes(n) {
+  if (n < 1024) return `${n} B`;
+  const units = ["KiB", "MiB", "GiB", "TiB"];
+  let v = n, i = -1;
+  do { v /= 1024; i++; } while (v >= 1024 && i < units.length - 1);
+  return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i]}`;
+}
+
+function plural(n, word) { return `${n} ${word}${n === 1 ? "" : "s"}`; }
+
+// One table row; cells are [text or node, class, title]. Paths come from clients: they
+// go in as text, never as HTML.
+function row(cells) {
+  const tr = document.createElement("tr");
+  for (const [content, cls, title] of cells) {
+    const td = document.createElement("td");
+    if (cls) td.className = cls;
+    if (title) td.title = title;
+    if (content instanceof Node) td.append(content); else td.textContent = content;
+    tr.append(td);
+  }
+  return tr;
+}
+
+function emptyRow(body, text, cols) {
+  const tr = row([[text, "sub"]]);
+  tr.firstChild.colSpan = cols;
+  body.replaceChildren(tr);
+}
+
+function render(d) {
+  target = d.target;
+  agent = d.agent;
+  document.title = `${target.name} · wakegate`;
+  $("name").textContent = target.name;
+  $("where").textContent = [target.host, target.mac, target.agent ? "" : "no agent: the target manages its own sleep"]
+    .filter(Boolean).join(" · ");
+  const [label, cls] = shown(target);
+  $("state").textContent = label;
+  $("state").className = "pill " + cls;
+
+  const ready = target.state === "ready";
+  const managed = target.agent && agent;
+  $("b-wake").disabled = ready || target.state === "shutting-down";
+  for (const id of ["b-stay", "b-suspend", "b-poweroff"]) {
+    $(id).hidden = !target.agent;
+    $(id).disabled = !(ready && managed);
+  }
+  renderSleep();
+  renderHost();
+  renderWakes(d.wakes);
+  renderServices(d.services);
+  renderSchedule(d.schedule);
+  renderRecent(d.recent);
+  $("foot").textContent = `wakegate ${d.version}${agent ? ` · agent ${agent.version}` : ""} · counters since ` +
+    new Date(d.since).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) +
+    ". A ×N row groups identical requests in a row.";
+}
+
+function renderSleep() {
+  $("c-sleep").hidden = !target.agent;
+  const holds = $("holds");
+  holds.replaceChildren();
+  const s = agent && agent.sleep;
+  const verb = s && s.action === "poweroff" ? "Power off" : s && s.action === "hibernate" ? "Hibernation" : "Sleep";
+  $("sleeplabel").textContent = verb;
+  for (const b of $("delays").querySelectorAll("button")) {
+    b.disabled = !(s && target.state === "ready" && s.action !== "none");
+    b.setAttribute("aria-pressed", String(!!s && Number(b.dataset.min) === s.idle_minutes));
+    b.title = `After ${b.dataset.min} min without requests`;
+  }
+  $("b-release").hidden = true;
+  if (!s) {
+    $("sleep").textContent = shown(target)[0];
+    $("sleepwhy").textContent = "";
+    return;
+  }
+  if (target.state === "shutting-down") { $("sleep").textContent = "Now"; $("sleepwhy").textContent = ""; return; }
+  if (s.action === "none") {
+    $("sleep").textContent = "Disabled";
+    $("sleepwhy").textContent = "sleep: none in agent.yaml";
+  } else if (s.in_seconds != null) {
+    $("sleep").textContent = s.in_seconds < 60 ? "In less than a minute" : `In ${span(s.in_seconds)}`;
+    $("sleepwhy").textContent = `after ${s.idle_minutes} min without requests`;
+  } else {
+    $("sleep").textContent = "Held";
+    $("sleepwhy").textContent = `then after ${s.idle_minutes} min without requests`;
+  }
+  for (const h of s.held_by) {
+    const li = document.createElement("li");
+    li.textContent = h.detail;
+    holds.append(li);
+  }
+  if (s.ignored_sessions) {
+    const li = document.createElement("li");
+    li.textContent = `${plural(s.ignored_sessions, "session")} set aside`;
+    holds.append(li);
+  }
+  $("b-release").hidden = !s.held_by.some((h) => h.kind === "session" || h.kind === "stay_awake");
+}
+
+function renderHost() {
+  const m = agent && agent.memory;
+  if (m && m.total) {
+    const used = m.total - m.available;
+    $("mem").textContent = `${(used / 2 ** 30).toFixed(1)} / ${(m.total / 2 ** 30).toFixed(0)} GiB`;
+    $("membar").style.width = `${Math.min(100, 100 * used / m.total)}%`;
+  } else {
+    $("mem").textContent = "—";
+    $("membar").style.width = "0";
+  }
+  $("host").textContent = agent ? agent.hostname : "";
+  if (agent && target.state !== "off") {
+    const since = new Date(agent.awake_since);
+    $("awake").textContent = span((Date.now() - since) / 1000);
+    $("awakesub").textContent = `since ${since.toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" })}`;
+  } else {
+    $("awake").textContent = "—";
+    $("awakesub").textContent = "";
+  }
+}
+
+const FROM = { suspend: "from sleep", hibernate: "from hibernation", poweroff: "from off", unknown: "" };
+
+function renderWakes(w) {
+  const total = Object.values(w.ok).reduce((a, b) => a + b, 0);
+  $("wakes").textContent = String(total);
+  const parts = [];
+  if (w.last) parts.push(`last ${clock(w.last.at)}, ${w.last.seconds.toFixed(1)} s ${FROM[w.last.from] || ""}`.trim());
+  if (w.failures) parts.push(`${plural(w.failures, "failure")}`);
+  $("wakesub").textContent = parts.join(" · ") || "since the proxy started";
+}
+
+function renderServices(services) {
+  const body = $("services");
+  body.replaceChildren();
+  for (const s of services) {
+    let status = ["—", "s-off"];
+    if (s.up === true) status = ["up", "s-ready"];
+    else if (s.up === false) status = ["down", "s-bad"];
+    else if (target.state !== "ready") status = [shown(target)[0].toLowerCase(), "s-off"];
+    body.append(row([
+      [s.name + (s.mode === "tcp" ? " (TCP)" : "")],
+      [s.listen, "mono"], [s.upstream, "mono"], status,
+      [String(s.wake), "num", s.woke ? `${s.woke} waited for a wake-up` : ""],
+      [String(s.other), "num", s.errors ? `${plural(s.errors, "error")}` : ""],
+      [String(s.refused), "num"],
+      [ago(s.last)],
+    ]));
+  }
+}
+
+// The window is kept by the proxy: it can be set while the target sleeps. The fields
+// are filled once, so polling never overwrites what is being typed.
+function renderSchedule(s) {
+  if (!schedLoaded) {
+    schedLoaded = true;
+    $("s-on").checked = s.enabled;
+    if (s.start) $("s-start").value = s.start;
+    if (s.end) $("s-end").value = s.end;
+    for (const b of document.querySelectorAll(".days button"))
+      b.setAttribute("aria-pressed", String(s.days.includes(Number(b.dataset.day))));
+  }
+  let text;
+  if (!s.enabled) text = "Off: the target wakes up only when a request needs it.";
+  else if (s.active) text = `Open: the target stays awake until ${clock(s.until)}.`;
+  else text = `${s.days.map((d) => DAYS[d]).join(", ")}, from ${s.start} to ${s.end}.`;
+  if (s.enabled && !target.agent) text += " Without an agent, the window wakes the target at its start but cannot keep it awake.";
+  $("schedmsg").textContent = text;
+}
+
+function result(e) {
+  const tcp = e.method === "TCP";
+  if (e.pending) return [tcp ? "open…" : "in progress…", "s-pending"];
+  if (e.status === 499) return ["client left", "s-off"];
+  switch (e.outcome) {
+    case "refused": return ["503 · asleep, not woken", "s-asleep"];
+    case "waiting": return ["waiting page · waking up", "s-pending"];
+    case "timeout": return [tcp ? "did not wake up" : `${e.status} · did not come up`, "s-bad"];
+    case "failed": return [tcp ? "service unreachable" : `${e.status} · no answer`, "s-bad"];
+  }
+  const after = e.woke ? " · after wake-up" : "";
+  if (tcp) return [`closed · ${bytes(e.bytes || 0)}${after}`, "s-ready"];
+  return [String(e.status) + after, e.status >= 400 ? "s-bad" : "s-ready"];
+}
+
+function renderRecent(recent) {
+  const body = $("recent");
+  if (!recent.length) { emptyRow(body, "No requests since the proxy started.", 6); return; }
+  body.replaceChildren();
+  for (const e of recent) {
+    const what = document.createElement("span");
+    what.textContent = e.method === "TCP" ? "connection" : `${e.method} ${e.path}`;
+    if (e.count > 1) {
+      const times = document.createElement("span");
+      times.className = "times";
+      times.textContent = `×${e.count}`;
+      what.append(times);
+    }
+    const [text, cls] = result(e);
+    body.append(row([
+      [clock(e.at, true)], [e.service],
+      [what, "path mono", e.method === "TCP" ? "" : `${e.method} ${e.path} · ${e.wakes ? "may wake the target" : "does not wake the target"}`],
+      [text, cls], [e.pending ? "—" : duration(e.duration_ms), "num"], [e.client],
+    ]));
+  }
+}
+
+async function refresh() {
+  clearTimeout(timer);
+  try {
+    const r = await fetch("/api/status", { cache: "no-store" });
+    if (r.ok) render(await r.json());
+    else $("msg").textContent = `Status unavailable (HTTP ${r.status}).`;
+  } catch (e) {
+    $("msg").textContent = "The proxy does not answer.";
+  }
+  const settled = target.state === "ready" || target.state === "off";
+  timer = setTimeout(refresh, settled ? 3000 : 1500);
+}
+
+function errorText(d, status) {
+  if (d.held_by && d.held_by.length) return "Refused: " + d.held_by.map((h) => h.detail).join(", ") + ".";
+  return (d.error && d.error.message) || `Error ${status}.`;
+}
+
+async function act(path, body, ok) {
+  $("msg").textContent = "…";
+  try {
+    const r = await fetch(path, { method: "POST", headers: body ? { "Content-Type": "application/json" } : {},
+                                  body: body ? JSON.stringify(body) : undefined });
+    const d = await r.json().catch(() => ({}));
+    $("msg").textContent = r.ok ? (typeof ok === "function" ? ok(d) : ok) : errorText(d, r.status);
+  } catch (e) {
+    $("msg").textContent = "The proxy does not answer.";
+  }
+  refresh();
+}
+
+function released(d) {
+  const done = [];
+  if (d.ignored_sessions) done.push(`${plural(d.ignored_sessions, "session")} set aside`);
+  if (d.stay_awake_cancelled) done.push("stay-awake cancelled");
+  let text = "Hold released" + (done.length ? ": " + done.join(", ") : "") + ".";
+  const s = d.sleep;
+  if (s.held_by.length) text += " Still held by " + s.held_by.map((h) => h.detail).join(", ") + ".";
+  else if (s.in_seconds != null) text += s.in_seconds < 60 ? " Sleeps within a minute." : ` Sleeps in ${span(s.in_seconds)}.`;
+  return text;
+}
+
+$("b-wake").onclick = () => act("/api/wake", null, "Wake-up requested.");
+$("b-stay").onclick = () => act("/api/stay-awake", { minutes: 120 }, "Stays awake for two hours.");
+$("b-suspend").onclick = () => act("/api/sleep", { action: "suspend" }, "Going to sleep. The next request that needs it wakes it up.");
+$("b-poweroff").onclick = () => {
+  if (confirm(`Power off ${target.name} now? Waking up from off takes longer than from sleep.`))
+    act("/api/sleep", { action: "poweroff" }, "Shutting down.");
+};
+$("b-release").onclick = () => act("/api/release", null, released);
+for (const b of $("delays").querySelectorAll("button")) {
+  b.onclick = () => act("/api/idle", { minutes: Number(b.dataset.min) },
+    `Sleeps after ${b.dataset.min} min without requests, counted from now.`);
+}
+for (const b of document.querySelectorAll(".days button")) {
+  b.onclick = () => b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true"));
+}
+$("b-sched").onclick = async () => {
+  const days = [...document.querySelectorAll(".days button")]
+    .filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => Number(b.dataset.day));
+  const body = { enabled: $("s-on").checked, days, start: $("s-start").value, end: $("s-end").value };
+  $("schedmsg").textContent = "…";
+  try {
+    const r = await fetch("/api/schedule", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok) { schedLoaded = false; renderSchedule(d); }
+    else $("schedmsg").textContent = errorText(d, r.status);
+  } catch (e) {
+    $("schedmsg").textContent = "The proxy does not answer.";
+  }
+};
+refresh();
+</script>
+</body>
+</html>

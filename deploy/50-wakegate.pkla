@@ -1,0 +1,8 @@
+# Lets the wakegate agent suspend, hibernate or power off this computer, for polkit
+# versions older than 0.106 (Ubuntu 22.04 and earlier), which ignore rules.d.
+[wakegate agent]
+Identity=unix-user:wakegate
+Action=org.freedesktop.login1.suspend;org.freedesktop.login1.suspend-multiple-sessions;org.freedesktop.login1.hibernate;org.freedesktop.login1.hibernate-multiple-sessions;org.freedesktop.login1.power-off;org.freedesktop.login1.power-off-multiple-sessions
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes

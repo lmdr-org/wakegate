@@ -1,0 +1,32 @@
+[Unit]
+Description=wakegate agent: puts this computer to sleep when nothing needs it
+Documentation=https://github.com/clauer-org/wakegate
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=wakegate
+Group=wakegate
+ExecStart=/usr/local/bin/wakegate agent -config /etc/wakegate/agent.yaml
+Restart=always
+RestartSec=2
+StateDirectory=wakegate
+StateDirectoryMode=0750
+
+# Sleeping goes through logind; polkit lets the wakegate user do it
+# (/etc/polkit-1/rules.d/50-wakegate.rules). keep_awake commands run under these
+# restrictions too: add what they need in a drop-in (systemctl edit wakegate-agent),
+# such as SupplementaryGroups=docker.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

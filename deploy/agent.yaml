@@ -1,0 +1,32 @@
+# wakegate agent, on the computer that sleeps. Every setting below shows its default:
+# an empty file works too. Reference: docs/configuration.md.
+
+# Address of the agent API, for the proxy.
+listen: ":9777"
+
+# The proxy sends this token with every request but GET /healthz. The installer
+# generates it; copy the same file to the proxy. WAKEGATE_TOKEN overrides it.
+token_file: /etc/wakegate/agent.token
+
+# Time without requests through the proxy before the computer goes to sleep. The admin
+# page can change it; the change is kept in state_dir.
+idle_timeout: 30m
+
+# What going to sleep means: suspend, hibernate, poweroff, or none (never sleep, only
+# report).
+sleep: suspend
+
+# What keeps the computer awake besides requests through the proxy.
+keep_awake:
+  # Logged-in users (SSH, console, desktop): all, active (not reported idle by logind),
+  # or none. The admin page can set the open sessions aside ("Release hold").
+  sessions: all
+  # systemd sleep inhibitors, such as `systemd-inhibit --what=sleep restic backup ...`.
+  inhibitors: true
+  # Shell commands run every 15 seconds; one that exits 0 means work is in progress.
+  # They run as the wakegate user.
+  commands: []
+  #  - pgrep -x borg
+  #  - test -e /run/backup.lock
+
+state_dir: /var/lib/wakegate
