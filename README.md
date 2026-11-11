@@ -21,6 +21,8 @@ for a while.
               └───────────────────┘                      └────────────────────────┘
 ```
 
+![One request through wakegate, from a sleeping tower to its answer, and the timing diagram of the same request](docs/how-it-works.gif)
+
 - A request that needs the computer wakes it, waits for the service, then goes through.
   Streamed answers (an LLM's tokens, server-sent events) and WebSockets are relayed as
   they come.
